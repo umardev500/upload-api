@@ -30,19 +30,27 @@ func (u *uploadHandler) UploadChunk(c *fiber.Ctx) error {
 	chunkTotal, _ := strconv.Atoi(c.Params("chunk_total"))
 	chunkIndex, _ := strconv.Atoi(c.Params("chunk_index"))
 
-	// validate chunk index and chunk total
-	// to check for last chunk is uploaded
-	if chunkTotal == (chunkIndex + 1) {
-		return Ok(c, 200, "processing last upload", nil)
-	}
-
 	tempDir := filepath.Join("./storage/temp", chunkID)
 	if _, err := os.Stat(tempDir); os.IsNotExist(err) {
 		os.MkdirAll(tempDir, os.ModePerm)
 	}
 	chunkpath := filepath.Join(tempDir, chunk.Filename)
 
-	u.usecase.SaveToFile(chunk, chunkpath)
+	err = u.usecase.SaveToFile(chunk, chunkpath)
+	if err != nil {
+		return Failed(c, fiber.StatusInternalServerError, err.Error())
+	}
 
-	return Ok(c, 200, "Upload success", nil)
+	// validate chunk index and chunk total
+	// to check for last chunk is uploaded
+	if chunkTotal == (chunkIndex + 1) {
+		dest := filepath.Join("storage", "video")
+		err = u.usecase.Reassemble(tempDir, dest)
+		if err != nil {
+			return Failed(c, fiber.StatusInternalServerError, err.Error())
+		}
+		return Ok(c, fiber.StatusCreated, "video reassembled successfuly", nil)
+	}
+
+	return Ok(c, fiber.StatusOK, "Upload success", nil)
 }
