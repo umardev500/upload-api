@@ -42,7 +42,7 @@ func (u *uploadHandler) UploadChunk(c *fiber.Ctx) error {
 	}
 	chunkpath := filepath.Join(tempDir, chunk.Filename)
 
-	u.usecase.SaveToFileChunk(chunk, chunkpath)
+	u.usecase.SaveToFile(chunk, chunkpath)
 
 	return Ok(c, 200, "Upload success", nil)
 }

@@ -11,5 +11,5 @@ type UploadHandler interface {
 }
 
 type UploadUsecase interface {
-	SaveToFileChunk(file *multipart.FileHeader, chunkpath string) error
+	SaveToFile(file *multipart.FileHeader, chunkpath string) error
 }

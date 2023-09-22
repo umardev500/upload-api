@@ -1,8 +1,9 @@
 package usecase
 
 import (
-	"fmt"
+	"io"
 	"mime/multipart"
+	"os"
 
 	"github.com/umardev500/upload-api/domain"
 )
@@ -13,13 +14,21 @@ func NewUploadUsecase() domain.UploadUsecase {
 	return &uploadUsecase{}
 }
 
-func (uc uploadUsecase) SaveToFileChunk(chunk *multipart.FileHeader, chunkpath string) error {
-	f, err := chunk.Open()
+func (uc uploadUsecase) SaveToFile(file *multipart.FileHeader, filename string) error {
+	f, err := file.Open()
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 
-	fmt.Println(f)
+	out, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(out, f)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
